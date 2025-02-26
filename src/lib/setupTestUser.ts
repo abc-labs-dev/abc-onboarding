@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 
 export async function createTestUser() {
   const { data, error } = await supabase.auth.signUp({
-    email: 'test@example.com',
+    email: 'testuser@gmail.com',
     password: 'password123',
   });
 

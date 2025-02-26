@@ -12,8 +12,8 @@ import { createTestUser } from "@/lib/setupTestUser";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("testuser@gmail.com");
+  const [password, setPassword] = useState("password123");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -30,7 +30,17 @@ export function LoginForm() {
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
           // Try to create test user if login fails
-          await createTestUser();
+          const { error: signUpError } = await createTestUser();
+          
+          if (signUpError) {
+            toast({
+              title: "Error",
+              description: signUpError.message,
+              variant: "destructive",
+            });
+            return;
+          }
+
           // Try logging in again
           const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
             email,
