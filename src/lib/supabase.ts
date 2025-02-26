@@ -1,8 +1,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-// Since you're connected to Supabase, we can safely initialize without checking for env vars
-export const supabase = createClient(
-  "https://your-project-url.supabase.co",  // This will be replaced with your actual URL
-  "your-anon-key"  // This will be replaced with your actual anon key
-);
+const supabaseUrl = "https://pzepjyttlrjlxzzafgzx.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6ZXBqeXR0bHJqbHh6emFmZ3p4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDc5MTk2NTQsImV4cCI6MjAyMzQ5NTY1NH0.NeZ_yVGPgEHXCbIe0hRbdczK-u5gqGGVv8SgGKqkdCI";
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
