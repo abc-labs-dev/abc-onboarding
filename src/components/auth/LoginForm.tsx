@@ -33,8 +33,7 @@ export function LoginForm() {
           title: "Success",
           description: "Welcome back!",
         });
-        // Navigate to dashboard or home page after successful login
-        // navigate("/dashboard");
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Login error:", error);
