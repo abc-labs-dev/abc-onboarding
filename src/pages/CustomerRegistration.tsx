@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +18,6 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-interface Product {
-  name: string;
-}
-
 const E2E_PRODUCTS = [
   "Pre-employment testing - Digitally",
   "Pre-employment testing - In person",
@@ -35,6 +32,8 @@ const E2E_PRODUCTS = [
   "EU Union discussion assistance",
 ];
 
+const WDT_TC_PRODUCTS = ["Standard WDT Test", "TC Certification"];
+
 const CustomerRegistration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -48,6 +47,8 @@ const CustomerRegistration = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const availableProducts = formData.customerType === "e2e" ? E2E_PRODUCTS : WDT_TC_PRODUCTS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,15 +97,6 @@ const CustomerRegistration = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleProductSelect = (product: string) => {
-    setSelectedProducts(prev => {
-      if (prev.includes(product)) {
-        return prev.filter(p => p !== product);
-      }
-      return [...prev, product];
-    });
   };
 
   return (
@@ -198,78 +190,72 @@ const CustomerRegistration = () => {
                 </Select>
               </div>
 
-              <div>
-                <Label>Products</Label>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className="w-full justify-between"
-                    >
-                      {selectedProducts.length === 0
-                        ? "Select products..."
-                        : `${selectedProducts.length} product${
-                            selectedProducts.length === 1 ? "" : "s"
-                          } selected`}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Search products..." className="h-9" />
-                      <CommandEmpty>No products found.</CommandEmpty>
-                      <CommandGroup className="max-h-64 overflow-auto">
-                        {formData.customerType === "e2e"
-                          ? E2E_PRODUCTS.map((product) => (
-                              <CommandItem
-                                key={product}
-                                onSelect={() => handleProductSelect(product)}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedProducts.includes(product)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {product}
-                              </CommandItem>
-                            ))
-                          : ["Standard WDT Test", "TC Certification"].map((product) => (
-                              <CommandItem
-                                key={product}
-                                onSelect={() => handleProductSelect(product)}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedProducts.includes(product)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {product}
-                              </CommandItem>
-                            ))}
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {selectedProducts.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {selectedProducts.map((product) => (
-                      <div
-                        key={product}
-                        className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
+              {formData.customerType && (
+                <div>
+                  <Label>Products</Label>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
                       >
-                        {product}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                        {selectedProducts.length === 0
+                          ? "Select products..."
+                          : `${selectedProducts.length} product${
+                              selectedProducts.length === 1 ? "" : "s"
+                            } selected`}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0 bg-popover" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search products..." />
+                        <CommandEmpty>No products found.</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {availableProducts.map((product) => (
+                            <CommandItem
+                              key={product}
+                              onSelect={() => {
+                                setSelectedProducts((prev) =>
+                                  prev.includes(product)
+                                    ? prev.filter((p) => p !== product)
+                                    : [...prev, product]
+                                );
+                                setOpen(false);
+                              }}
+                            >
+                              <div className="flex items-center">
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedProducts.includes(product)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {product}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {selectedProducts.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {selectedProducts.map((product) => (
+                        <div
+                          key={product}
+                          className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
+                        >
+                          {product}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <Button 
