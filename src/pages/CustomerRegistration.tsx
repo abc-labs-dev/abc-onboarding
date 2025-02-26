@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -218,12 +217,15 @@ const CustomerRegistration = () => {
                           ? E2E_PRODUCTS.map((product) => (
                               <CommandItem
                                 key={product}
-                                onSelect={() => {
-                                  setSelectedProducts((prev) =>
-                                    prev.includes(product)
-                                      ? prev.filter((p) => p !== product)
-                                      : [...prev, product]
-                                  );
+                                value={product}
+                                onSelect={(currentValue) => {
+                                  setSelectedProducts((prev) => {
+                                    const value = currentValue;
+                                    if (prev.includes(value)) {
+                                      return prev.filter((p) => p !== value);
+                                    }
+                                    return [...prev, value];
+                                  });
                                 }}
                               >
                                 <Check
@@ -240,12 +242,15 @@ const CustomerRegistration = () => {
                           : ["Standard WDT Test", "TC Certification"].map((product) => (
                               <CommandItem
                                 key={product}
-                                onSelect={() => {
-                                  setSelectedProducts((prev) =>
-                                    prev.includes(product)
-                                      ? prev.filter((p) => p !== product)
-                                      : [...prev, product]
-                                  );
+                                value={product}
+                                onSelect={(currentValue) => {
+                                  setSelectedProducts((prev) => {
+                                    const value = currentValue;
+                                    if (prev.includes(value)) {
+                                      return prev.filter((p) => p !== value);
+                                    }
+                                    return [...prev, value];
+                                  });
                                 }}
                               >
                                 <Check
