@@ -6,25 +6,38 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual login logic
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulated delay
-      toast({
-        title: "Success",
-        description: "Welcome back!",
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+
+      if (error) throw error;
+
+      if (data.user) {
+        toast({
+          title: "Success",
+          description: "Welcome back!",
+        });
+        // Navigate to dashboard or home page after successful login
+        // navigate("/dashboard");
+      }
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Error",
         description: "Invalid credentials. Please try again.",
