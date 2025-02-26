@@ -12,8 +12,13 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+interface Product {
+  name: string;
+  price: string;
+}
 
 const CustomerRegistration = () => {
   const navigate = useNavigate();
@@ -25,28 +30,64 @@ const CustomerRegistration = () => {
     phone: "",
     customerType: "",
   });
+  const [products, setProducts] = useState<Product[]>([{ name: "", price: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddProduct = () => {
+    setProducts([...products, { name: "", price: "" }]);
+  };
+
+  const handleRemoveProduct = (index: number) => {
+    const updatedProducts = products.filter((_, i) => i !== index);
+    setProducts(updatedProducts.length ? updatedProducts : [{ name: "", price: "" }]);
+  };
+
+  const handleProductChange = (index: number, field: keyof Product, value: string) => {
+    const updatedProducts = products.map((product, i) => {
+      if (i === index) {
+        return { ...product, [field]: value };
+      }
+      return product;
+    });
+    setProducts(updatedProducts);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("customers").insert([
-        {
-          company_name: formData.companyName,
-          contact_name: formData.contactName,
-          email: formData.email,
-          phone: formData.phone,
-          customer_type: formData.customerType,
-        },
-      ]);
+      // First insert the customer
+      const { data: customerData, error: customerError } = await supabase
+        .from("customers")
+        .insert([
+          {
+            company_name: formData.companyName,
+            contact_name: formData.contactName,
+            email: formData.email,
+            phone: formData.phone,
+            customer_type: formData.customerType,
+          },
+        ])
+        .select();
 
-      if (error) throw error;
+      if (customerError) throw customerError;
+      if (!customerData || customerData.length === 0) throw new Error("No customer data returned");
+
+      // Then insert all products for this customer
+      const { error: productsError } = await supabase.from("products").insert(
+        products.map((product) => ({
+          customer_id: customerData[0].id,
+          name: product.name,
+          price: parseFloat(product.price),
+        }))
+      );
+
+      if (productsError) throw productsError;
 
       toast({
         title: "Success",
-        description: "Customer registered successfully",
+        description: "Customer and products registered successfully",
       });
       navigate("/dashboard");
     } catch (error) {
@@ -77,7 +118,7 @@ const CustomerRegistration = () => {
           <div>
             <h1 className="text-3xl font-bold">Register New Customer</h1>
             <p className="text-muted-foreground">
-              Enter customer details to create a new account
+              Enter customer details and their products
             </p>
           </div>
 
@@ -149,6 +190,61 @@ const CustomerRegistration = () => {
                     <SelectItem value="wdt-tc">WDT/TC</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Products</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddProduct}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add Product
+                  </Button>
+                </div>
+
+                {products.map((product, index) => (
+                  <div key={index} className="flex gap-4 items-start">
+                    <div className="flex-1">
+                      <Label htmlFor={`product-name-${index}`}>Product Name</Label>
+                      <Input
+                        id={`product-name-${index}`}
+                        value={product.name}
+                        onChange={(e) =>
+                          handleProductChange(index, "name", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label htmlFor={`product-price-${index}`}>Price</Label>
+                      <Input
+                        id={`product-price-${index}`}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={product.price}
+                        onChange={(e) =>
+                          handleProductChange(index, "price", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                    {products.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="mt-6"
+                        onClick={() => handleRemoveProduct(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
