@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,11 @@ const E2E_PRODUCTS = [
 
 const WDT_TC_PRODUCTS = ["Standard WDT Test", "TC Certification"];
 
+interface ProductWithPrice {
+  name: string;
+  price: string;
+}
+
 const CustomerRegistration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -50,7 +56,7 @@ const CustomerRegistration = () => {
     phone: "",
     customerType: "",
   });
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<ProductWithPrice[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -77,7 +83,8 @@ const CustomerRegistration = () => {
 
       const productsToInsert = selectedProducts.map(product => ({
         customer_id: customerData[0].id,
-        name: product,
+        name: product.name,
+        price: parseFloat(product.price) || 0,
       }));
 
       const { error: productsError } = await supabase
@@ -106,10 +113,19 @@ const CustomerRegistration = () => {
   const products = formData.customerType === "e2e" ? E2E_PRODUCTS : WDT_TC_PRODUCTS;
 
   const toggleProduct = (product: string) => {
-    setSelectedProducts((prev) =>
-      prev.includes(product)
-        ? prev.filter((p) => p !== product)
-        : [...prev, product]
+    setSelectedProducts((prev) => {
+      if (prev.some(p => p.name === product)) {
+        return prev.filter(p => p.name !== product);
+      }
+      return [...prev, { name: product, price: "" }];
+    });
+  };
+
+  const updateProductPrice = (productName: string, price: string) => {
+    setSelectedProducts(prev =>
+      prev.map(p =>
+        p.name === productName ? { ...p, price } : p
+      )
     );
   };
 
@@ -238,7 +254,7 @@ const CustomerRegistration = () => {
                                 <Check
                                   className={cn(
                                     "h-4 w-4",
-                                    selectedProducts.includes(product)
+                                    selectedProducts.some(p => p.name === product)
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
@@ -254,13 +270,27 @@ const CustomerRegistration = () => {
                 </Popover>
 
                 {selectedProducts.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
+                  <div className="mt-4 space-y-2">
                     {selectedProducts.map((product) => (
                       <div
-                        key={product}
-                        className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
+                        key={product.name}
+                        className="flex items-center gap-4 p-2 rounded-md border bg-background"
                       >
-                        {product}
+                        <span className="flex-1">{product.name}</span>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`price-${product.name}`} className="text-sm whitespace-nowrap">
+                            Price (SEK)
+                          </Label>
+                          <Input
+                            id={`price-${product.name}`}
+                            type="number"
+                            value={product.price}
+                            onChange={(e) => updateProductPrice(product.name, e.target.value)}
+                            className="w-24"
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
