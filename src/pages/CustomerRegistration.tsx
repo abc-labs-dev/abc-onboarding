@@ -9,29 +9,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 interface Product {
   name: string;
-  price: string;
 }
 
 const E2E_PRODUCTS = [
-  { name: "Pre-employment testing - Digitally", price: "" },
-  { name: "Pre-employment testing - In person", price: "" },
-  { name: "Pre-employment testing - At ABC in Stockholm", price: "" },
-  { name: "Randomized testing - Digitally", price: "" },
-  { name: "Randomized testing - In person", price: "" },
-  { name: "Incident (suspicion) testing - Digitally", price: "" },
-  { name: "Incident (suspicion) testing - In person", price: "" },
-  { name: "MRO services", price: "" },
-  { name: "Policy guidance", price: "" },
-  { name: "Internal training for managers", price: "" },
-  { name: "EU Union discussion assistance", price: "" },
+  "Pre-employment testing - Digitally",
+  "Pre-employment testing - In person",
+  "Pre-employment testing - At ABC in Stockholm",
+  "Randomized testing - Digitally",
+  "Randomized testing - In person",
+  "Incident (suspicion) testing - Digitally",
+  "Incident (suspicion) testing - In person",
+  "MRO services",
+  "Policy guidance",
+  "Internal training for managers",
+  "EU Union discussion assistance",
 ];
 
 const CustomerRegistration = () => {
@@ -43,36 +42,9 @@ const CustomerRegistration = () => {
     email: "",
     phone: "",
     customerType: "",
+    selectedProduct: "",
   });
-  const [products, setProducts] = useState<Product[]>([{ name: "", price: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (formData.customerType === "e2e") {
-      setProducts(E2E_PRODUCTS);
-    } else if (formData.customerType === "wdt-tc") {
-      setProducts([{ name: "", price: "" }]);
-    }
-  }, [formData.customerType]);
-
-  const handleAddProduct = () => {
-    setProducts([...products, { name: "", price: "" }]);
-  };
-
-  const handleRemoveProduct = (index: number) => {
-    const updatedProducts = products.filter((_, i) => i !== index);
-    setProducts(updatedProducts.length ? updatedProducts : [{ name: "", price: "" }]);
-  };
-
-  const handleProductChange = (index: number, field: keyof Product, value: string) => {
-    const updatedProducts = products.map((product, i) => {
-      if (i === index) {
-        return { ...product, [field]: value };
-      }
-      return product;
-    });
-    setProducts(updatedProducts);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,20 +68,19 @@ const CustomerRegistration = () => {
       if (customerError) throw customerError;
       if (!customerData || customerData.length === 0) throw new Error("No customer data returned");
 
-      // Then insert all products for this customer
-      const { error: productsError } = await supabase.from("products").insert(
-        products.map((product) => ({
+      // Then insert the selected product for this customer
+      const { error: productsError } = await supabase.from("products").insert([
+        {
           customer_id: customerData[0].id,
-          name: product.name,
-          price: parseFloat(product.price) || 0,
-        }))
-      );
+          name: formData.selectedProduct,
+        },
+      ]);
 
       if (productsError) throw productsError;
 
       toast({
         title: "Success",
-        description: "Customer and products registered successfully",
+        description: "Customer and product registered successfully",
       });
       navigate("/dashboard");
     } catch (error) {
@@ -140,7 +111,7 @@ const CustomerRegistration = () => {
           <div>
             <h1 className="text-3xl font-bold">Register New Customer</h1>
             <p className="text-muted-foreground">
-              Enter customer details and their products
+              Enter customer details and select their product
             </p>
           </div>
 
@@ -214,62 +185,32 @@ const CustomerRegistration = () => {
                 </Select>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Products</Label>
-                  {formData.customerType !== "e2e" && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddProduct}
-                    >
-                      <Plus className="h-4 w-4 mr-1" /> Add Product
-                    </Button>
-                  )}
-                </div>
-
-                {products.map((product, index) => (
-                  <div key={index} className="flex gap-4 items-start">
-                    <div className="flex-1">
-                      <Label htmlFor={`product-name-${index}`}>Product Name</Label>
-                      <Input
-                        id={`product-name-${index}`}
-                        value={product.name}
-                        onChange={(e) =>
-                          handleProductChange(index, "name", e.target.value)
-                        }
-                        required
-                        readOnly={formData.customerType === "e2e"}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Label htmlFor={`product-price-${index}`}>Price</Label>
-                      <Input
-                        id={`product-price-${index}`}
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={product.price}
-                        onChange={(e) =>
-                          handleProductChange(index, "price", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
-                    {formData.customerType !== "e2e" && products.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="mt-6"
-                        onClick={() => handleRemoveProduct(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+              <div>
+                <Label htmlFor="product">Product</Label>
+                <Select
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, selectedProduct: value })
+                  }
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {formData.customerType === "e2e" ? (
+                      E2E_PRODUCTS.map((product) => (
+                        <SelectItem key={product} value={product}>
+                          {product}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <>
+                        <SelectItem value="Standard WDT Test">Standard WDT Test</SelectItem>
+                        <SelectItem value="TC Certification">TC Certification</SelectItem>
+                      </>
                     )}
-                  </div>
-                ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
