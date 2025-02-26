@@ -35,7 +35,11 @@ const Dashboard = () => {
             Register New Customer
           </Button>
           
-          <Button className="h-32 text-lg" variant="outline">
+          <Button 
+            onClick={() => navigate("/customers")}
+            className="h-32 text-lg" 
+            variant="outline"
+          >
             <Users className="mr-2 h-6 w-6" />
             View All Customers
           </Button>
