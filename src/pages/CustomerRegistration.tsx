@@ -12,8 +12,11 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface Product {
   name: string;
@@ -42,9 +45,10 @@ const CustomerRegistration = () => {
     email: "",
     phone: "",
     customerType: "",
-    selectedProduct: "",
   });
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,19 +72,21 @@ const CustomerRegistration = () => {
       if (customerError) throw customerError;
       if (!customerData || customerData.length === 0) throw new Error("No customer data returned");
 
-      // Then insert the selected product for this customer
-      const { error: productsError } = await supabase.from("products").insert([
-        {
-          customer_id: customerData[0].id,
-          name: formData.selectedProduct,
-        },
-      ]);
+      // Then insert all selected products for this customer
+      const productsToInsert = selectedProducts.map(product => ({
+        customer_id: customerData[0].id,
+        name: product,
+      }));
+
+      const { error: productsError } = await supabase
+        .from("products")
+        .insert(productsToInsert);
 
       if (productsError) throw productsError;
 
       toast({
         title: "Success",
-        description: "Customer and product registered successfully",
+        description: "Customer and products registered successfully",
       });
       navigate("/dashboard");
     } catch (error) {
@@ -111,7 +117,7 @@ const CustomerRegistration = () => {
           <div>
             <h1 className="text-3xl font-bold">Register New Customer</h1>
             <p className="text-muted-foreground">
-              Enter customer details and select their product
+              Enter customer details and select their products
             </p>
           </div>
 
@@ -170,9 +176,10 @@ const CustomerRegistration = () => {
               <div>
                 <Label htmlFor="customerType">Customer Type</Label>
                 <Select
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, customerType: value })
-                  }
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, customerType: value });
+                    setSelectedProducts([]); // Reset selected products when changing customer type
+                  }}
                   required
                 >
                   <SelectTrigger>
@@ -186,35 +193,96 @@ const CustomerRegistration = () => {
               </div>
 
               <div>
-                <Label htmlFor="product">Product</Label>
-                <Select
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, selectedProduct: value })
-                  }
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formData.customerType === "e2e" ? (
-                      E2E_PRODUCTS.map((product) => (
-                        <SelectItem key={product} value={product}>
-                          {product}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <>
-                        <SelectItem value="Standard WDT Test">Standard WDT Test</SelectItem>
-                        <SelectItem value="TC Certification">TC Certification</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
+                <Label>Products</Label>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full justify-between"
+                    >
+                      {selectedProducts.length === 0
+                        ? "Select products..."
+                        : `${selectedProducts.length} product${
+                            selectedProducts.length === 1 ? "" : "s"
+                          } selected`}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search products..." className="h-9" />
+                      <CommandEmpty>No products found.</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {formData.customerType === "e2e"
+                          ? E2E_PRODUCTS.map((product) => (
+                              <CommandItem
+                                key={product}
+                                onSelect={() => {
+                                  setSelectedProducts((prev) =>
+                                    prev.includes(product)
+                                      ? prev.filter((p) => p !== product)
+                                      : [...prev, product]
+                                  );
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedProducts.includes(product)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {product}
+                              </CommandItem>
+                            ))
+                          : ["Standard WDT Test", "TC Certification"].map((product) => (
+                              <CommandItem
+                                key={product}
+                                onSelect={() => {
+                                  setSelectedProducts((prev) =>
+                                    prev.includes(product)
+                                      ? prev.filter((p) => p !== product)
+                                      : [...prev, product]
+                                  );
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedProducts.includes(product)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {product}
+                              </CommandItem>
+                            ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {selectedProducts.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {selectedProducts.map((product) => (
+                      <div
+                        key={product}
+                        className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
+                      >
+                        {product}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting || selectedProducts.length === 0}
+            >
               {isSubmitting ? "Registering..." : "Register Customer"}
             </Button>
           </form>
