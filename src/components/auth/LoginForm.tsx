@@ -100,4 +100,4 @@ export function LoginForm() {
       </Button>
     </form>
   );
-}
+};
