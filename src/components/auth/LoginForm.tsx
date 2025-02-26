@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { createTestUser } from "@/lib/setupTestUser";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +27,28 @@ export function LoginForm() {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          // Try to create test user if login fails
+          await createTestUser();
+          // Try logging in again
+          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (retryError) throw retryError;
+          if (retryData.user) {
+            toast({
+              title: "Success",
+              description: "Welcome! Test user created and logged in.",
+            });
+            navigate("/dashboard");
+            return;
+          }
+        }
+        throw error;
+      }
 
       if (data.user) {
         toast({
@@ -39,7 +61,7 @@ export function LoginForm() {
       console.error("Login error:", error);
       toast({
         title: "Error",
-        description: "Invalid credentials. Please try again.",
+        description: "There was a problem logging in. Please try again.",
         variant: "destructive",
       });
     } finally {
