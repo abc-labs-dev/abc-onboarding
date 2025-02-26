@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const CustomerRegistration = () => {
   const navigate = useNavigate();
@@ -24,22 +25,39 @@ const CustomerRegistration = () => {
     phone: "",
     customerType: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     try {
-      // TODO: Implement customer registration logic with Supabase
+      const { error } = await supabase.from("customers").insert([
+        {
+          company_name: formData.companyName,
+          contact_name: formData.contactName,
+          email: formData.email,
+          phone: formData.phone,
+          customer_type: formData.customerType,
+        },
+      ]);
+
+      if (error) throw error;
+
       toast({
         title: "Success",
         description: "Customer registered successfully",
       });
       navigate("/dashboard");
     } catch (error) {
+      console.error("Error registering customer:", error);
       toast({
         title: "Error",
-        description: "Failed to register customer",
+        description: "Failed to register customer. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -134,8 +152,8 @@ const CustomerRegistration = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              Register Customer
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Registering..." : "Register Customer"}
             </Button>
           </form>
         </div>
