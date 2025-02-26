@@ -12,8 +12,8 @@ import { createTestUser } from "@/lib/setupTestUser";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("testuser@gmail.com");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("test@abclabs.se");
+  const [password, setPassword] = useState("123");
   const { toast } = useToast();
   const navigate = useNavigate();
 
