@@ -48,6 +48,7 @@ const CustomerRegistration = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
 
+  // Define available products based on customer type
   const availableProducts = formData.customerType === "e2e" ? E2E_PRODUCTS : WDT_TC_PRODUCTS;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -200,6 +201,7 @@ const CustomerRegistration = () => {
                         role="combobox"
                         aria-expanded={open}
                         className="w-full justify-between"
+                        disabled={!formData.customerType}
                       >
                         {selectedProducts.length === 0
                           ? "Select products..."
@@ -208,11 +210,11 @@ const CustomerRegistration = () => {
                             } selected`}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0 bg-popover" align="start">
-                      <Command>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command className="bg-popover">
                         <CommandInput placeholder="Search products..." />
                         <CommandEmpty>No products found.</CommandEmpty>
-                        <CommandGroup className="max-h-64 overflow-auto">
+                        <CommandGroup>
                           {availableProducts.map((product) => (
                             <CommandItem
                               key={product}
@@ -222,26 +224,25 @@ const CustomerRegistration = () => {
                                     ? prev.filter((p) => p !== product)
                                     : [...prev, product]
                                 );
-                                setOpen(false);
                               }}
+                              className="cursor-pointer"
                             >
-                              <div className="flex items-center">
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedProducts.includes(product)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {product}
-                              </div>
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedProducts.includes(product)
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {product}
                             </CommandItem>
                           ))}
                         </CommandGroup>
                       </Command>
                     </PopoverContent>
                   </Popover>
+
                   {selectedProducts.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {selectedProducts.map((product) => (
