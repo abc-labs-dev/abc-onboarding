@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +13,13 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +53,6 @@ const CustomerRegistration = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // Define available products based on customer type
   const availableProducts = formData.customerType === "e2e" ? E2E_PRODUCTS : WDT_TC_PRODUCTS;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,7 +181,7 @@ const CustomerRegistration = () => {
                 <Select
                   onValueChange={(value) => {
                     setFormData({ ...formData, customerType: value });
-                    setSelectedProducts([]); // Reset selected products when changing customer type
+                    setSelectedProducts([]);
                   }}
                   required
                 >
@@ -191,31 +195,31 @@ const CustomerRegistration = () => {
                 </Select>
               </div>
 
-              {formData.customerType && (
-                <div>
-                  <Label>Products</Label>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={open}
-                        className="w-full justify-between"
-                        disabled={!formData.customerType}
-                      >
-                        {selectedProducts.length === 0
-                          ? "Select products..."
-                          : `${selectedProducts.length} product${
-                              selectedProducts.length === 1 ? "" : "s"
-                            } selected`}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
-                      <Command className="bg-popover">
-                        <CommandInput placeholder="Search products..." />
+              <div>
+                <Label>Products</Label>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full justify-between"
+                      disabled={!formData.customerType}
+                    >
+                      {selectedProducts.length === 0
+                        ? "Select products..."
+                        : `${selectedProducts.length} product${
+                            selectedProducts.length === 1 ? "" : "s"
+                          } selected`}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" side="bottom" align="start">
+                    <div className="w-[400px]">
+                      <Command className="rounded-lg border shadow-md">
+                        <CommandInput placeholder="Search products..." className="h-9" />
                         <CommandEmpty>No products found.</CommandEmpty>
-                        <CommandGroup>
-                          {availableProducts.map((product) => (
+                        <CommandGroup className="p-1">
+                          {(formData.customerType ? availableProducts : []).map((product) => (
                             <CommandItem
                               key={product}
                               onSelect={() => {
@@ -225,7 +229,6 @@ const CustomerRegistration = () => {
                                     : [...prev, product]
                                 );
                               }}
-                              className="cursor-pointer"
                             >
                               <Check
                                 className={cn(
@@ -235,28 +238,28 @@ const CustomerRegistration = () => {
                                     : "opacity-0"
                                 )}
                               />
-                              {product}
+                              <span>{product}</span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
                       </Command>
-                    </PopoverContent>
-                  </Popover>
-
-                  {selectedProducts.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {selectedProducts.map((product) => (
-                        <div
-                          key={product}
-                          className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
-                        >
-                          {product}
-                        </div>
-                      ))}
                     </div>
-                  )}
-                </div>
-              )}
+                  </PopoverContent>
+                </Popover>
+
+                {selectedProducts.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {selectedProducts.map((product) => (
+                      <div
+                        key={product}
+                        className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
+                      >
+                        {product}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <Button 
