@@ -30,12 +30,12 @@ export function LoginForm() {
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
           // Try to create test user if login fails
-          const { error: signUpError } = await createTestUser();
+          const result = await createTestUser();
           
-          if (signUpError) {
+          if ('error' in result) {
             toast({
               title: "Error",
-              description: signUpError.message,
+              description: result.error.message,
               variant: "destructive",
             });
             return;

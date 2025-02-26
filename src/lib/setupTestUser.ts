@@ -9,7 +9,7 @@ export async function createTestUser() {
 
   if (error) {
     console.error('Error creating test user:', error);
-    return;
+    return { error };
   }
 
   return data;
