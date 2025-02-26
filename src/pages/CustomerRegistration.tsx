@@ -19,6 +19,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -52,8 +53,6 @@ const CustomerRegistration = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
-
-  const availableProducts = formData.customerType === "e2e" ? E2E_PRODUCTS : WDT_TC_PRODUCTS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +101,16 @@ const CustomerRegistration = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const products = formData.customerType === "e2e" ? E2E_PRODUCTS : WDT_TC_PRODUCTS;
+
+  const toggleProduct = (product: string) => {
+    setSelectedProducts((prev) =>
+      prev.includes(product)
+        ? prev.filter((p) => p !== product)
+        : [...prev, product]
+    );
   };
 
   return (
@@ -213,37 +222,34 @@ const CustomerRegistration = () => {
                           } selected`}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0" side="bottom" align="start">
-                    <div className="w-[400px]">
-                      <Command className="rounded-lg border shadow-md">
-                        <CommandInput placeholder="Search products..." className="h-9" />
+                  <PopoverContent className="p-0 w-[400px]" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search products..." />
+                      <CommandList>
                         <CommandEmpty>No products found.</CommandEmpty>
-                        <CommandGroup className="p-1">
-                          {(formData.customerType ? availableProducts : []).map((product) => (
+                        <CommandGroup>
+                          {products.map((product) => (
                             <CommandItem
                               key={product}
-                              onSelect={() => {
-                                setSelectedProducts((prev) =>
-                                  prev.includes(product)
-                                    ? prev.filter((p) => p !== product)
-                                    : [...prev, product]
-                                );
-                              }}
+                              value={product}
+                              onSelect={() => toggleProduct(product)}
                             >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedProducts.includes(product)
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              <span>{product}</span>
+                              <div className="flex items-center gap-2">
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4",
+                                    selectedProducts.includes(product)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <span>{product}</span>
+                              </div>
                             </CommandItem>
                           ))}
                         </CommandGroup>
-                      </Command>
-                    </div>
+                      </CommandList>
+                    </Command>
                   </PopoverContent>
                 </Popover>
 
