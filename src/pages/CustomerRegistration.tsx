@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
@@ -19,6 +19,20 @@ interface Product {
   name: string;
   price: string;
 }
+
+const E2E_PRODUCTS = [
+  { name: "Pre-employment testing - Digitally", price: "" },
+  { name: "Pre-employment testing - In person", price: "" },
+  { name: "Pre-employment testing - At ABC in Stockholm", price: "" },
+  { name: "Randomized testing - Digitally", price: "" },
+  { name: "Randomized testing - In person", price: "" },
+  { name: "Incident (suspicion) testing - Digitally", price: "" },
+  { name: "Incident (suspicion) testing - In person", price: "" },
+  { name: "MRO services", price: "" },
+  { name: "Policy guidance", price: "" },
+  { name: "Internal training for managers", price: "" },
+  { name: "EU Union discussion assistance", price: "" },
+];
 
 const CustomerRegistration = () => {
   const navigate = useNavigate();
@@ -32,6 +46,14 @@ const CustomerRegistration = () => {
   });
   const [products, setProducts] = useState<Product[]>([{ name: "", price: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (formData.customerType === "e2e") {
+      setProducts(E2E_PRODUCTS);
+    } else if (formData.customerType === "wdt-tc") {
+      setProducts([{ name: "", price: "" }]);
+    }
+  }, [formData.customerType]);
 
   const handleAddProduct = () => {
     setProducts([...products, { name: "", price: "" }]);
@@ -79,7 +101,7 @@ const CustomerRegistration = () => {
         products.map((product) => ({
           customer_id: customerData[0].id,
           name: product.name,
-          price: parseFloat(product.price),
+          price: parseFloat(product.price) || 0,
         }))
       );
 
@@ -195,14 +217,16 @@ const CustomerRegistration = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label>Products</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddProduct}
-                  >
-                    <Plus className="h-4 w-4 mr-1" /> Add Product
-                  </Button>
+                  {formData.customerType !== "e2e" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddProduct}
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add Product
+                    </Button>
+                  )}
                 </div>
 
                 {products.map((product, index) => (
@@ -216,6 +240,7 @@ const CustomerRegistration = () => {
                           handleProductChange(index, "name", e.target.value)
                         }
                         required
+                        readOnly={formData.customerType === "e2e"}
                       />
                     </div>
                     <div className="flex-1">
@@ -232,7 +257,7 @@ const CustomerRegistration = () => {
                         required
                       />
                     </div>
-                    {products.length > 1 && (
+                    {formData.customerType !== "e2e" && products.length > 1 && (
                       <Button
                         type="button"
                         variant="ghost"
