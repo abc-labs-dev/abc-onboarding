@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +54,6 @@ const CustomerRegistration = () => {
     setIsSubmitting(true);
 
     try {
-      // First insert the customer
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .insert([
@@ -72,7 +70,6 @@ const CustomerRegistration = () => {
       if (customerError) throw customerError;
       if (!customerData || customerData.length === 0) throw new Error("No customer data returned");
 
-      // Then insert all selected products for this customer
       const productsToInsert = selectedProducts.map(product => ({
         customer_id: customerData[0].id,
         name: product,
@@ -99,6 +96,15 @@ const CustomerRegistration = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleProductSelect = (product: string) => {
+    setSelectedProducts(prev => {
+      if (prev.includes(product)) {
+        return prev.filter(p => p !== product);
+      }
+      return [...prev, product];
+    });
   };
 
   return (
@@ -209,7 +215,7 @@ const CustomerRegistration = () => {
                           } selected`}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
+                  <PopoverContent className="w-full p-0" align="start">
                     <Command>
                       <CommandInput placeholder="Search products..." className="h-9" />
                       <CommandEmpty>No products found.</CommandEmpty>
@@ -218,16 +224,7 @@ const CustomerRegistration = () => {
                           ? E2E_PRODUCTS.map((product) => (
                               <CommandItem
                                 key={product}
-                                value={product}
-                                onSelect={(currentValue) => {
-                                  const value = String(currentValue);
-                                  setSelectedProducts((prev) => {
-                                    if (prev.includes(value)) {
-                                      return prev.filter((p) => p !== value);
-                                    }
-                                    return [...prev, value];
-                                  });
-                                }}
+                                onSelect={() => handleProductSelect(product)}
                               >
                                 <Check
                                   className={cn(
@@ -243,16 +240,7 @@ const CustomerRegistration = () => {
                           : ["Standard WDT Test", "TC Certification"].map((product) => (
                               <CommandItem
                                 key={product}
-                                value={product}
-                                onSelect={(currentValue) => {
-                                  const value = String(currentValue);
-                                  setSelectedProducts((prev) => {
-                                    if (prev.includes(value)) {
-                                      return prev.filter((p) => p !== value);
-                                    }
-                                    return [...prev, value];
-                                  });
-                                }}
+                                onSelect={() => handleProductSelect(product)}
                               >
                                 <Check
                                   className={cn(
