@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,8 +220,8 @@ const CustomerRegistration = () => {
                                 key={product}
                                 value={product}
                                 onSelect={(currentValue) => {
+                                  const value = String(currentValue);
                                   setSelectedProducts((prev) => {
-                                    const value = currentValue;
                                     if (prev.includes(value)) {
                                       return prev.filter((p) => p !== value);
                                     }
@@ -244,8 +245,8 @@ const CustomerRegistration = () => {
                                 key={product}
                                 value={product}
                                 onSelect={(currentValue) => {
+                                  const value = String(currentValue);
                                   setSelectedProducts((prev) => {
-                                    const value = currentValue;
                                     if (prev.includes(value)) {
                                       return prev.filter((p) => p !== value);
                                     }
